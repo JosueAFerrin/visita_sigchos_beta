@@ -58,6 +58,23 @@ export default function EmprendimientosPage() {
     });
   }, []);
 
+  //Nuevo Ref para el scroll del mapa
+  const mapCardRef = useRef<HTMLDivElement | null>(null);
+  const scrollToMapCard = useCallback(() => {
+    if (!mapCardRef.current) return;
+
+    const rect = mapCardRef.current.getBoundingClientRect();
+    const absoluteTop = rect.top + window.pageYOffset;
+    const offset = absoluteTop - window.innerHeight / 2 + rect.height / 2;
+
+    window.scrollTo({
+      top: offset,
+      behavior: "smooth",
+    });
+  }, []);
+
+
+
   // Lightbox: close on ESC and lock body scroll while open
   useEffect(() => {
     if (!lightboxSrc) return;
@@ -212,10 +229,10 @@ export default function EmprendimientosPage() {
             destinoNombre: r.destinoNombre,
           });
         },
-        scrollToMap,
+        scrollToMap: scrollToMapCard,
         setLoading: setDibujandoRuta, // 👈 aquí encendemos/apagamos el overlay
       }),
-    [markers, scrollToMap]
+    [markers, scrollToMapCard]
   );
 
   return (
@@ -520,138 +537,146 @@ export default function EmprendimientosPage() {
           </div>
 
           {/* Columna derecha: Detalle + Mapa fijo */}
-          <div
-            className="lg:col-span-1"
-            style={{
-              background: "#fff",
-              padding: 18,
-              borderRadius: 10,
-              boxShadow: "0 8px 24px rgba(2,6,23,0.06)",
-              minHeight: "60vh",
-              display: "grid",
-              gridTemplateRows: "auto 12px 520px",
-            }}
-          >
-            {/* Detalle */}
-            {!selected ? (
-              <div>Seleccione un emprendimiento para ver detalles.</div>
-            ) : (
-              <div>
-                <h2 style={{ fontSize: "20px", fontWeight: 800, margin: 0 }}>{selected.Nombre}</h2>
-                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                  <div style={{ flex: 1 }}>
-                    <label>Horario</label>
-                    <div style={{ padding: 12, background: "#fafafa", borderRadius: 8 }}>
-                      {selected.Horario ?? "No disponible"}
-                    </div>
-                  </div>
-                </div>
+          {/* Columna derecha: ahora son 2 cards separados */}
+          <div className="lg:col-span-1" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            
+            {/* CARD 1: Detalles */}
+            <div
+              style={{
+                background: "#fff",
+                padding: 18,
+                borderRadius: 10,
+                boxShadow: "0 8px 24px rgba(2,6,23,0.06)",
+                boxSizing: "border-box",
+              }}
+            >
+              {!selected ? (
+                <div>Seleccione un emprendimiento para ver detalles.</div>
+              ) : (
+                <div>
+                  <h2 style={{ fontSize: "20px", fontWeight: 800, margin: 0 }}>{selected.Nombre}</h2>
 
-                <section style={{ marginTop: 16 }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Descripción</h3>
-                  <p>{selected.Descripcion}</p>
-                </section>
-
-                {/* Fotos + Productos */}
-                <section style={{ marginTop: 16 }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Galería</h3>
-                  <div style={{ marginTop: 8 }}>
-                    {/* Gallery: responsive grid that creates columns and lets items grow when there are few */}
-                    <div
-                      style={{
-                        display: "grid",
-                        gap: 8,
-                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                        alignItems: "start",
-                        justifyItems: "stretch",
-                      }}
-                    >
-                      {selectedFotos.length > 0 ? (
-                        selectedFotos.map((u, i) => (
-                          <div
-                            key={i}
-                            style={{ width: "100%", height: 0, paddingBottom: "78%", position: "relative", cursor: "pointer", borderRadius: 8, overflow: "hidden" }}
-                            onClick={() => setLightboxSrc(u)}
-                          >
-                            <img
-                              src={u}
-                              alt={`Foto ${i + 1}`}
-                              style={{
-                                position: "absolute",
-                                inset: 0,
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                display: "block",
-                              }}
-                            />
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ color: "#666" }}>No hay fotos disponibles para esta galería.</div>
-                      )}
-                    </div>
-
-                    <div style={{ marginTop: 12 }}>
-                      <h4 style={{ fontSize: 15, fontWeight: 700 }}>Productos</h4>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {productos.length > 0 ? (
-                          productos.map((p) => (
-                            <div
-                              key={p.Id}
-                              style={{
-                                width: 160,
-                                background: "#fff",
-                                borderRadius: 8,
-                                padding: 8,
-                                boxShadow: "0 6px 18px rgba(2,6,23,0.06)",
-                                display: "flex",
-                                flexDirection: "column",
-                              }}
-                            >
-                              <div style={{ width: "100%", height: 90, borderRadius: 6, overflow: "hidden", marginBottom: 8 }}>
-                                {p.ImagenUrl ? (
-                                  <img src={p.ImagenUrl} alt={p.Nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                ) : (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      height: "100%",
-                                      background: "#f3f4f6",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      color: "#9ca3af",
-                                    }}
-                                  >
-                                    Sin imagen
-                                  </div>
-                                )}
-                              </div>
-                              <div style={{ fontSize: 14, fontWeight: 700, color: "#0b2e55" }}>{p.Nombre}</div>
-                              <div style={{ fontSize: 13, color: "#374151" }}>
-                                {p.Descripcion ? (p.Descripcion.length > 60 ? p.Descripcion.slice(0, 60) + "…" : p.Descripcion) : ""}
-                              </div>
-                              {typeof p.Valor === "number" && (
-                                <div style={{ marginTop: 6, fontWeight: 700, color: "#0b2e55" }}>₡{p.Valor}</div>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <div style={{ color: "#666" }}>No hay productos vinculados a este emprendimiento.</div>
-                        )}
+                  <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <label>Horario</label>
+                      <div style={{ padding: 12, background: "#fafafa", borderRadius: 8 }}>
+                        {selected.Horario ?? "No disponible"}
                       </div>
                     </div>
                   </div>
-                </section>
-              </div>
-            )}
 
-            {/* gap */}
-            <div />
+                  <section style={{ marginTop: 16 }}>
+                    <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Descripción</h3>
+                    <p>{selected.Descripcion}</p>
+                  </section>
 
-            {/* 🗺️ Mapa fijo */}
-            <div id="mapa-empr-container" className="h-[520px] w-full rounded-xl overflow-hidden bg-black/20">
+                  {/* Fotos + Productos */}
+                  <section style={{ marginTop: 16 }}>
+                    <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Galería</h3>
+
+                    <div style={{ marginTop: 8 }}>
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: 8,
+                          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                          alignItems: "start",
+                          justifyItems: "stretch",
+                        }}
+                      >
+                        {selectedFotos.length > 0 ? (
+                          selectedFotos.map((u, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                width: "100%",
+                                height: 0,
+                                paddingBottom: "78%",
+                                position: "relative",
+                                cursor: "pointer",
+                                borderRadius: 8,
+                                overflow: "hidden",
+                              }}
+                              onClick={() => setLightboxSrc(u)}
+                            >
+                              <img
+                                src={u}
+                                alt={`Foto ${i + 1}`}
+                                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                            </div>
+                          ))
+                        ) : (
+                          <div style={{ color: "#666" }}>No hay fotos disponibles para esta galería.</div>
+                        )}
+                      </div>
+
+                      <div style={{ marginTop: 12 }}>
+                        <h4 style={{ fontSize: 15, fontWeight: 700 }}>Productos</h4>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {productos.length > 0 ? (
+                            productos.map((p) => (
+                              <div
+                                key={p.Id}
+                                style={{
+                                  width: 160,
+                                  background: "#fff",
+                                  borderRadius: 8,
+                                  padding: 8,
+                                  boxShadow: "0 6px 18px rgba(2,6,23,0.06)",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                }}
+                              >
+                                <div style={{ width: "100%", height: 90, borderRadius: 6, overflow: "hidden", marginBottom: 8 }}>
+                                  {p.ImagenUrl ? (
+                                    <img src={p.ImagenUrl} alt={p.Nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  ) : (
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        background: "#f3f4f6",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "#9ca3af",
+                                      }}
+                                    >
+                                      Sin imagen
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: "#0b2e55" }}>{p.Nombre}</div>
+                                <div style={{ fontSize: 13, color: "#374151" }}>
+                                  {p.Descripcion ? (p.Descripcion.length > 60 ? p.Descripcion.slice(0, 60) + "…" : p.Descripcion) : ""}
+                                </div>
+                                {typeof p.Valor === "number" && (
+                                  <div style={{ marginTop: 6, fontWeight: 700, color: "#0b2e55" }}>₡{p.Valor}</div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ color: "#666" }}>No hay productos vinculados a este emprendimiento.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+            </div>
+
+            {/* CARD 2: Mapa */}
+            <div ref={mapCardRef}
+              style={{
+                background: "#fff",
+                padding: 12,
+                borderRadius: 10,
+                boxShadow: "0 8px 24px rgba(2,6,23,0.06)",
+                boxSizing: "border-box",
+              }}
+            >
               {/* Errores de UI */}
               {uiError && (
                 <div
@@ -663,21 +688,25 @@ export default function EmprendimientosPage() {
                 </div>
               )}
 
-              <MapView
-                markers={markers}
-                selectedRoute={
-                  selectedRoute
-                    ? {
-                      geojson: selectedRoute.geojson,
-                      user: selectedRoute.user,
-                      destino: selectedRoute.destino,
-                      destinoNombre: selectedRoute.destinoNombre,
-                    }
-                    : null
-                }
-              />
+              <div id="mapa-empr-container" className="h-[520px] w-full rounded-xl overflow-hidden bg-black/20">
+                <MapView
+                  markers={markers}
+                  selectedRoute={
+                    selectedRoute
+                      ? {
+                          geojson: selectedRoute.geojson,
+                          user: selectedRoute.user,
+                          destino: selectedRoute.destino,
+                          destinoNombre: selectedRoute.destinoNombre,
+                        }
+                      : null
+                  }
+                />
+              </div>
             </div>
+
           </div>
+
 
         </div>
       </section>
