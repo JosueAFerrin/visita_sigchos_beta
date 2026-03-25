@@ -45,7 +45,7 @@ export default function Footer() {
             <a href="/">INICIO</a>
             <a href="/contactos">CONTACTO</a>
             <a href="/mapa-sigchos">MAPA DE SIGCHOS</a>
-            <a href="http://localhost:5173/">ADMINISTRACION</a>
+            <a href="https://turismo.gadmsigchos.gob.ec:8084/">ADMINISTRACION</a>
           </nav>
           <div className="final-legal">
             <a href="/politcs/terminos-y-condiciones">Términos y Condiciones</a>
