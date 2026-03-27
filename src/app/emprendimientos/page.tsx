@@ -14,7 +14,7 @@ import {
 } from "@/services/emprendimientos.service";
 
 import { getParroquias } from "@/services/parroquias.service";
-import { getItemCatalogos } from "@/services/itemcatalogo.service";
+import { getItemCatalogosByCatalogoCodigo} from "@/services/itemcatalogo.service";
 import { getGaleriasWithDetalles } from "@/services/galeria.service";
 import { getProductosByEmprendimiento, type ProductoRow } from "@/services/producto.service";
 
@@ -159,7 +159,7 @@ export default function EmprendimientosPage() {
         const ps = await getParroquias();
         if (!mounted) return;
         setParroquias(ps);
-        const cats = await getItemCatalogos();
+        const cats = await getItemCatalogosByCatalogoCodigo('TIPO_EMPRENDIMIENTO');
         if (!mounted) return;
         setCategorias(cats);
       } catch (err) {
@@ -652,7 +652,7 @@ export default function EmprendimientosPage() {
                                   {p.Descripcion ? (p.Descripcion.length > 60 ? p.Descripcion.slice(0, 60) + "…" : p.Descripcion) : ""}
                                 </div>
                                 {typeof p.Valor === "number" && (
-                                  <div style={{ marginTop: 6, fontWeight: 700, color: "#0b2e55" }}>₡{p.Valor}</div>
+                                  <div style={{ marginTop: 6, fontWeight: 700, color: "#0b2e55" }}>${p.Valor}</div>
                                 )}
                               </div>
                             ))
